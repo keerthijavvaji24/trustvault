@@ -1,19 +1,16 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUserWithProfile } from '@/lib/auth/roles'
 
 export const instant = false
 
 export default async function DashboardPage() {
-  const supabase = await createClient()
+  const authResult = await getCurrentUserWithProfile()
 
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
-
-  if (error || !user) {
+  if (authResult.status === 'unauthenticated') {
     redirect('/login')
   }
+
+  const { user, profile, status, error: authError } = authResult
 
   return (
     <main className="min-h-screen bg-slate-950 text-white">
@@ -41,23 +38,82 @@ export default async function DashboardPage() {
         <div className="max-w-2xl">
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Dashboard</h1>
           <p className="mt-2 text-slate-400">
-            Protected area verified on the server via Supabase Auth.
+            Protected area with server-side role resolution from public.profiles.
           </p>
 
-          <div className="mt-8 rounded-2xl border border-white/10 bg-slate-900/50 p-6">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-              Authenticated Account
-            </h2>
-            <p className="mt-2 text-xl font-medium text-white">
-              {user.email}
-            </p>
-            <p className="mt-4 text-xs text-slate-500">
-              User ID: <span className="font-mono text-slate-400">{user.id}</span>
-            </p>
+          {/* User & Role Information Card */}
+          <div className="mt-8 rounded-2xl border border-white/10 bg-slate-900/50 p-6 space-y-6">
+            <div>
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                Authenticated Account
+              </h2>
+              <p className="mt-1.5 text-xl font-medium text-white">
+                {user.email || 'No email associated'}
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                User ID: <span className="font-mono text-slate-400">{user.id}</span>
+              </p>
+            </div>
+
+            <div className="border-t border-white/10 pt-5">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                Application Role
+              </h2>
+
+              {status === 'success' && profile && (
+                <div className="mt-2 flex items-center gap-3">
+                  <span
+                    className={`inline-flex items-center rounded-lg px-3 py-1 text-xs font-semibold uppercase tracking-wide ${profile.role === 'admin'
+                        ? 'border border-purple-400/30 bg-purple-500/10 text-purple-300'
+                        : profile.role === 'owner'
+                          ? 'border border-blue-400/30 bg-blue-500/10 text-blue-300'
+                          : 'border border-slate-400/30 bg-slate-500/10 text-slate-300'
+                      }`}
+                  >
+                    {profile.role}
+                  </span>
+                  {profile.fullName && (
+                    <span className="text-sm text-slate-300">
+                      ({profile.fullName})
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {status === 'profile_not_found' && (
+                <div className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5 text-sm text-amber-200">
+                  <p className="font-semibold">Profile Not Found</p>
+                  <p className="mt-1 text-xs text-amber-300/90 leading-relaxed">
+                    No profile record was found in <code className="font-mono">public.profiles</code> for this user ID.
+                    Access is restricted; no role is assumed.
+                  </p>
+                  {authError && (
+                    <p className="mt-2 text-xs font-mono text-amber-400/80">
+                      Details: {authError}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {status === 'invalid_role' && (
+                <div className="mt-3 rounded-xl border border-red-500/30 bg-red-500/10 p-3.5 text-sm text-red-200">
+                  <p className="font-semibold">Invalid Role Detected</p>
+                  <p className="mt-1 text-xs text-red-300/90 leading-relaxed">
+                    The role stored in the database is not recognized. Expected one of: <code className="font-mono">admin</code>, <code className="font-mono">owner</code>, or <code className="font-mono">viewer</code>.
+                    No permissions are granted.
+                  </p>
+                  {authError && (
+                    <p className="mt-2 text-xs font-mono text-red-400/80">
+                      Details: {authError}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="mt-6 rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 text-sm text-blue-300">
-            This is a protected placeholder. Documents, permissions, roles, and secure storage will be implemented in subsequent steps.
+          <div className="mt-6 rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 text-sm text-blue-300 leading-relaxed">
+            The role displayed above is verified on the server directly from the database using your authenticated user ID. Client state, request parameters, and headers cannot override or manipulate this role.
           </div>
         </div>
       </section>
