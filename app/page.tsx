@@ -1,69 +1,123 @@
-import Image from "next/image";
-
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
+    <main className="min-h-screen bg-slate-950 text-white">
+      {/* Header */}
+      <header className="border-b border-white/10">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 font-bold text-lg">
+              T
+            </div>
+            <span className="text-xl font-semibold tracking-tight">
+              TrustVault
+            </span>
+          </div>
+
+          <nav className="hidden items-center gap-8 text-sm text-slate-300 md:flex">
+            <a href="#how-it-works" className="hover:text-white">
+              How it works
+            </a>
+            <a href="#security" className="hover:text-white">
+              Security
+            </a>
+            <a href="#about" className="hover:text-white">
+              About
+            </a>
+          </nav>
+
+          <button className="rounded-lg border border-white/15 px-4 py-2 text-sm font-medium hover:bg-white/10">
+            Sign in
+          </button>
+        </div>
+      </header>
+
+      {/* Hero */}
+      <section className="mx-auto max-w-6xl px-6 pb-24 pt-24">
+        <div className="max-w-3xl">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-400/20 bg-blue-400/10 px-4 py-2 text-sm text-blue-300">
+            <span className="h-2 w-2 rounded-full bg-blue-400" />
+            Trust, verified
+          </div>
+
+          <h1 className="text-5xl font-bold leading-tight tracking-tight sm:text-6xl">
+            Build trust with
+            <span className="block text-blue-400">proof, not promises.</span>
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+
+          <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-400">
+            TrustVault helps people verify, organize, and share trustworthy
+            information in one secure place.
+          </p>
+
+          <div className="mt-8 flex flex-col gap-4 sm:flex-row">
+            <button className="rounded-xl bg-blue-600 px-6 py-3 font-semibold hover:bg-blue-500">
+              Get started
+            </button>
+
+            <button className="rounded-xl border border-white/15 px-6 py-3 font-semibold text-slate-200 hover:bg-white/10">
+              Explore TrustVault
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Trust cards */}
+      <section
+        id="how-it-works"
+        className="border-y border-white/10 bg-slate-900/50"
+      >
+        <div className="mx-auto grid max-w-6xl gap-6 px-6 py-16 md:grid-cols-3">
+          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+            <div className="mb-5 text-2xl">✓</div>
+            <h2 className="text-xl font-semibold">Verify</h2>
+            <p className="mt-3 leading-7 text-slate-400">
+              Check information and establish confidence before you trust it.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+            <div className="mb-5 text-2xl">🔐</div>
+            <h2 className="text-xl font-semibold">Protect</h2>
+            <p className="mt-3 leading-7 text-slate-400">
+              Keep important trust information organized and protected.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+            <div className="mb-5 text-2xl">↗</div>
+            <h2 className="text-xl font-semibold">Share</h2>
+            <p className="mt-3 leading-7 text-slate-400">
+              Share the right proof with the right people when it matters.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Security */}
+      <section id="security" className="mx-auto max-w-6xl px-6 py-20">
+        <div className="rounded-3xl border border-blue-400/10 bg-blue-500/5 p-8 sm:p-12">
+          <p className="text-sm font-semibold uppercase tracking-widest text-blue-400">
+            TrustVault
+          </p>
+
+          <h2 className="mt-4 max-w-2xl text-3xl font-bold tracking-tight sm:text-4xl">
+            One place for the information you need to trust.
+          </h2>
+
+          <p className="mt-5 max-w-2xl leading-7 text-slate-400">
+            Designed around clarity, verification, and control — so trust
+            becomes something you can understand and act on.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      </section>
+
+      {/* Footer */}
+      <footer
+        id="about"
+        className="border-t border-white/10 px-6 py-8 text-center text-sm text-slate-500"
+      >
+        © 2026 TrustVault. Built for trustworthy decisions.
+      </footer>
+    </main>
   );
 }
