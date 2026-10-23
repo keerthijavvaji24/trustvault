@@ -204,7 +204,7 @@ export async function handleListDocuments(
     }
 
     const documents = (data ?? [])
-      .filter((doc: any) => !doc.deleted_at && doc.owner_id === user.id)
+      .filter((doc: any) => !doc.deleted_at)
       .map(mapToSafeDocumentMetadata)
 
     return {

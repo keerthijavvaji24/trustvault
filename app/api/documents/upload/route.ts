@@ -420,9 +420,10 @@ export async function handleUpload(
       storage_path: storagePath,
       mime_type: file.type,
       // description and category are optional; not sourced from client in this endpoint
+      category: "Uncategorized",
+      size_bytes: file.size,
       created_at: now,
       updated_at: now,
-      deleted_at: null,
     })
 
   // 10. Compensate if DB insertion fails: remove the orphaned Storage object.

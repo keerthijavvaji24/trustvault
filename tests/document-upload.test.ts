@@ -537,7 +537,9 @@ describe('Document Upload Foundation', () => {
     assert.strictEqual(row.mime_type, 'application/pdf', 'mime_type must be set')
     assert.ok(typeof row.created_at === 'string', 'created_at must be set')
     assert.ok(typeof row.updated_at === 'string', 'updated_at must be set')
-    assert.strictEqual(row.deleted_at, null, 'deleted_at must be null on insert')
+    assert.strictEqual(row.category, 'Uncategorized', 'category must be set to Uncategorized')
+    assert.strictEqual(row.size_bytes, 2048, 'size_bytes must match uploaded file size')
+    assert.strictEqual(row.deleted_at, undefined, 'deleted_at should be undefined on insert')
   })
 
   // ── MIME Spoofing & Byte Signature Validation ─────────────────────────────

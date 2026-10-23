@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-slate-950 text-white">
@@ -25,9 +27,7 @@ export default function Home() {
             </a>
           </nav>
 
-          <button className="rounded-lg border border-white/15 px-4 py-2 text-sm font-medium hover:bg-white/10">
-            Sign in
-          </button>
+                    <Link href="/login"><button className="rounded-lg border border-white/15 px-4 py-2 text-sm font-medium hover:bg-white/10">Sign in</button></Link>
         </div>
       </header>
 
