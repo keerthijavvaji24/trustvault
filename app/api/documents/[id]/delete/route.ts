@@ -8,6 +8,7 @@ import {
   getCurrentUserWithProfile,
   type AuthUserWithRoleResult,
 } from '@/lib/auth/roles'
+import { logAuditEvent } from '@/lib/audit/audit-logger'
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -157,6 +158,15 @@ export async function handleDeleteDocument(
   }
 
   if (accessResult.status === 'forbidden') {
+    void logAuditEvent(
+      {
+        action: 'document.delete',
+        outcome: 'denied',
+        documentId: cleanDocId,
+        reason: accessResult.error || 'Access denied: you do not have permission to delete this document.',
+      },
+      { supabaseClient: supabase }
+    )
     return {
       status: 'error',
       code: 'forbidden',
@@ -185,6 +195,15 @@ export async function handleDeleteDocument(
 
   if (userRole === 'viewer') {
     // Viewer explicitly denied regardless of can_edit or can_read flags.
+    void logAuditEvent(
+      {
+        action: 'document.delete',
+        outcome: 'denied',
+        documentId: cleanDocId,
+        reason: 'Access denied: viewer accounts are not permitted to delete documents.',
+      },
+      { supabaseClient: supabase }
+    )
     return {
       status: 'error',
       code: 'forbidden',
@@ -294,6 +313,15 @@ export async function handleDeleteDocument(
       deleted_at: deletedDoc.deleted_at,
     }
 
+    void logAuditEvent(
+      {
+        action: 'document.delete',
+        outcome: 'allowed',
+        documentId: cleanDocId,
+        details: { name: deletedDoc.name },
+      },
+      { supabaseClient: supabase }
+    )
     return {
       status: 'success',
       document: safeMetadata,

@@ -8,6 +8,7 @@ import {
   getCurrentUserWithProfile,
   type AuthUserWithRoleResult,
 } from '@/lib/auth/roles'
+import { logAuditEvent } from '@/lib/audit/audit-logger'
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -145,6 +146,15 @@ export async function handleDownload(
   }
 
   if (accessResult.status === 'forbidden') {
+    void logAuditEvent(
+      {
+        action: 'document.download',
+        outcome: 'denied',
+        documentId: cleanDocId,
+        reason: accessResult.error || 'Access denied: you do not have permission to download this document.',
+      },
+      { supabaseClient: supabase }
+    )
     return {
       status: 'error',
       code: 'forbidden',
@@ -153,6 +163,15 @@ export async function handleDownload(
   }
 
   if (accessResult.status !== 'allowed' || !accessResult.canRead) {
+    void logAuditEvent(
+      {
+        action: 'document.download',
+        outcome: 'denied',
+        documentId: cleanDocId,
+        reason: 'Access denied: read permission required to download this document.',
+      },
+      { supabaseClient: supabase }
+    )
     return {
       status: 'error',
       code: 'forbidden',
@@ -218,6 +237,15 @@ export async function handleDownload(
     }
   }
 
+  void logAuditEvent(
+    {
+      action: 'document.download',
+      outcome: 'allowed',
+      documentId: cleanDocId,
+      details: { name: authorizedDoc.name, mimeType: authorizedDoc.mimeType || 'application/octet-stream' },
+    },
+    { supabaseClient: supabase }
+  )
   return {
     status: 'success',
     data: arrayBuffer,

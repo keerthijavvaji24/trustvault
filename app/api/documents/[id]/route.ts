@@ -8,6 +8,7 @@ import {
   getCurrentUserWithProfile,
   type AuthUserWithRoleResult,
 } from '@/lib/auth/roles'
+import { logAuditEvent } from '@/lib/audit/audit-logger'
 
 // ---------------------------------------------------------------------------
 // Types & Interfaces
@@ -297,6 +298,15 @@ export async function handleUpdateDocument(
   }
 
   if (accessResult.status === 'forbidden') {
+    void logAuditEvent(
+      {
+        action: 'document.update',
+        outcome: 'denied',
+        documentId: cleanDocId,
+        reason: accessResult.error || 'Access denied: you do not have permission to modify this document.',
+      },
+      { supabaseClient: supabase }
+    )
     return {
       status: 'error',
       code: 'forbidden',
@@ -307,6 +317,15 @@ export async function handleUpdateDocument(
   // Strict check on edit capability: canEdit MUST be true
   // Rejects viewers with read-only permission (can_read=true, can_edit=false)
   if (accessResult.status !== 'allowed' || !accessResult.canEdit) {
+    void logAuditEvent(
+      {
+        action: 'document.update',
+        outcome: 'denied',
+        documentId: cleanDocId,
+        reason: 'Access denied: edit permission (can_edit) is required to modify this document.',
+      },
+      { supabaseClient: supabase }
+    )
     return {
       status: 'error',
       code: 'forbidden',
@@ -352,6 +371,20 @@ export async function handleUpdateDocument(
       }
     }
 
+    void logAuditEvent(
+      {
+        action: 'document.update',
+        outcome: 'allowed',
+        documentId: cleanDocId,
+        details: {
+          fields_updated: [
+            ...(validatedName !== undefined ? ['name'] : []),
+            ...(validatedCategory !== undefined ? ['category'] : []),
+          ],
+        },
+      },
+      { supabaseClient: supabase }
+    )
     return {
       status: 'success',
       document: mapToSafeDocumentMetadata(updatedDoc),

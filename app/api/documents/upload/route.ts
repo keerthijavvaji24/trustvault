@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto'
 import type { NextRequest } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentUserWithProfile } from '@/lib/auth/roles'
+import { logAuditEvent } from '@/lib/audit/audit-logger'
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -294,6 +295,14 @@ export async function handleUpload(
   // it is never sourced from the client.
   const { user, profile } = authResult
   if (!UPLOAD_ALLOWED_ROLES.has(profile.role)) {
+    void logAuditEvent(
+      {
+        action: 'document.upload',
+        outcome: 'denied',
+        reason: `Role "${profile.role}" is not permitted to upload documents.`,
+      },
+      { supabaseClient: deps.supabaseClient }
+    )
     return {
       status: 'error',
       code: 'forbidden',
@@ -436,6 +445,15 @@ export async function handleUpload(
   }
 
   // 11. Return success
+  void logAuditEvent(
+    {
+      action: 'document.upload',
+      outcome: 'allowed',
+      documentId,
+      details: { name: sanitizedName, mimeType: file.type },
+    },
+    { supabaseClient: deps.supabaseClient }
+  )
   return {
     status: 'success',
     documentId,

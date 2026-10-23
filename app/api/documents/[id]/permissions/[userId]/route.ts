@@ -8,6 +8,7 @@ import {
   getCurrentUserWithProfile,
   type AuthUserWithRoleResult,
 } from '@/lib/auth/roles'
+import { logAuditEvent } from '@/lib/audit/audit-logger'
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -361,6 +362,16 @@ export async function handleGrantPermission(
   // 4. Check authorization (runs getDocumentAccess; admin/owner only; viewer denied)
   const authCheck = await checkPermissionAuthority(cleanDocId, effectiveDeps)
   if (!authCheck.authorized) {
+    void logAuditEvent(
+      {
+        action: 'permission.grant',
+        outcome: 'denied',
+        documentId: cleanDocId,
+        targetUserId: cleanTargetId,
+        reason: authCheck.message,
+      },
+      { supabaseClient: supabase }
+    )
     return {
       status: 'error',
       code: authCheck.code,
@@ -370,6 +381,16 @@ export async function handleGrantPermission(
 
   // 5. Self-grant prevention: requester cannot grant themselves access
   if (authCheck.userId === cleanTargetId) {
+    void logAuditEvent(
+      {
+        action: 'permission.grant',
+        outcome: 'denied',
+        documentId: cleanDocId,
+        targetUserId: cleanTargetId,
+        reason: 'You cannot grant permissions to yourself.',
+      },
+      { supabaseClient: supabase }
+    )
     return {
       status: 'error',
       code: 'forbidden',
@@ -448,6 +469,16 @@ export async function handleGrantPermission(
       can_edit: Boolean(data.can_edit),
     }
 
+    void logAuditEvent(
+      {
+        action: 'permission.grant',
+        outcome: 'allowed',
+        documentId: cleanDocId,
+        targetUserId: cleanTargetId,
+        details: { can_read: canRead, can_edit: canEdit },
+      },
+      { supabaseClient: supabase }
+    )
     return { status: 'success', permission: safeRecord }
   } catch (err) {
     return {
@@ -522,6 +553,16 @@ export async function handleRevokePermission(
   // 4. Check authorization (runs getDocumentAccess; admin/owner only; viewer denied)
   const authCheck = await checkPermissionAuthority(cleanDocId, effectiveDeps)
   if (!authCheck.authorized) {
+    void logAuditEvent(
+      {
+        action: 'permission.revoke',
+        outcome: 'denied',
+        documentId: cleanDocId,
+        targetUserId: cleanTargetId,
+        reason: authCheck.message,
+      },
+      { supabaseClient: supabase }
+    )
     return {
       status: 'error',
       code: authCheck.code,
@@ -546,6 +587,15 @@ export async function handleRevokePermission(
     }
 
     // Idempotent: no error if permission did not exist (already revoked)
+    void logAuditEvent(
+      {
+        action: 'permission.revoke',
+        outcome: 'allowed',
+        documentId: cleanDocId,
+        targetUserId: cleanTargetId,
+      },
+      { supabaseClient: supabase }
+    )
     return {
       status: 'success',
       revoked: true,
