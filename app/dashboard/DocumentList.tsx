@@ -104,6 +104,26 @@ export default function DocumentList() {
               <div className="font-medium">{doc.name}</div>
               <div className="text-sm text-slate-400">Category: {doc.category ?? 'None'}</div>
               <div className="text-xs text-slate-500">Created: {doc.created_at}</div>
+              <button
+                onClick={async () => {
+                  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/documents/${doc.id}/download`);
+                  if (!res.ok) {
+                    const errData = await res.json().catch(() => ({}));
+                    alert(errData.error || `Download failed with status ${res.status}`);
+                    return;
+                  }
+                  const blob = await res.blob();
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = doc.name;
+                  a.click();
+                  window.URL.revokeObjectURL(url);
+                }}
+                className="mt-2 px-3 py-1 bg-blue-600 text-white rounded text-sm"
+              >
+                Download
+              </button>
             </li>
           ))}
         </ul>

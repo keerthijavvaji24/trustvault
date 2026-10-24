@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getCurrentUserWithProfile } from '@/lib/auth/roles'
 import DocumentList from './DocumentList'
+import LogoutButton from './LogoutButton'
 
 
 export const instant = false
@@ -34,6 +35,7 @@ export default async function DashboardPage() {
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
               Authenticated
             </span>
+            <LogoutButton />
           </div>
         </div>
       </header>
