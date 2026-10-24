@@ -413,6 +413,27 @@ http://localhost:3000
 ## Test Roles
 
 The application uses three roles:
+### Demo Credentials
+
+Use these dedicated demo accounts to test the deployed application:
+
+| Role | Email | Password |
+|---|---|---|
+| Admin | `trustvault.admin.test@gmail.com` | `Tvault#Admin2026!X7` |
+| Owner | `trustvault.owner.test@gmail.com` | `TvOwner@2026!Secure` |
+| Viewer | `trustvault.viewer.test@gmail.com` | `TvViewer@2026!Secure` |
+
+These accounts are provided for challenge evaluation only and contain demo data.
+
+### Suggested Evaluation Flow
+
+1. Sign in as **Owner** and upload a document.
+2. Grant the **Viewer** read access to that document.
+3. Sign in as **Viewer** and verify the document can be viewed/downloaded.
+4. Verify the Viewer cannot edit or delete the document.
+5. Sign in as **Owner** and revoke the Viewer's access.
+6. Sign in as **Viewer** again and verify the document is no longer accessible.
+7. Sign in as **Admin** and open **Admin Activity** to review allowed and denied audit events.
 
 ### Admin
 
