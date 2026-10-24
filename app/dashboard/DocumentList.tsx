@@ -11,6 +11,9 @@ interface Document {
 
 export default function DocumentList() {
   const [documents, setDocuments] = useState<Document[]>([]);
+  const [file, setFile] = useState<File | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
+  const [uploadMessage, setUploadMessage] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,6 +49,53 @@ export default function DocumentList() {
 
   return (
     <section className="mx-auto max-w-6xl px-6 py-12">
+      {/* Upload Document Section */}
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold mb-2">Upload Document</h2>
+        <input
+          type="file"
+          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+          className="mb-2 block w-full text-sm text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+        />
+        <button
+          onClick={async () => {
+            if (!file) {
+              setUploadMessage('Please select a file.');
+              setUploadStatus('error');
+              return;
+            }
+            setUploadStatus('uploading');
+            setUploadMessage('');
+            try {
+              const formData = new FormData();
+              formData.append('file', file);
+              const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/documents/upload`, {
+                method: 'POST',
+                body: formData,
+              });
+              if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.error || `Upload failed with status ${res.status}`);
+              }
+              setUploadStatus('success');
+              setUploadMessage('Document uploaded successfully.');
+              setTimeout(() => {
+                window.location.reload();
+              }, 1000);
+            } catch (err) {
+              setUploadStatus('error');
+              setUploadMessage(err instanceof Error ? err.message : String(err));
+            }
+          }}
+          disabled={uploadStatus === 'uploading'}
+          className="px-4 py-2 bg-emerald-600 text-white rounded disabled:opacity-50"
+        >
+          {uploadStatus === 'uploading' ? 'Uploading...' : 'Upload'}
+        </button>
+        {uploadMessage && (
+          <p className={`mt-2 ${uploadStatus === 'error' ? 'text-red-400' : 'text-green-400'}`}>{uploadMessage}</p>
+        )}
+      </div>
       <h2 className="text-2xl font-semibold">Your Documents</h2>
       {documents.length > 0 ? (
         <ul className="mt-4 space-y-2">
