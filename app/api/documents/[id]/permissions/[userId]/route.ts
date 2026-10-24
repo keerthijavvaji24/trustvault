@@ -62,11 +62,11 @@ export interface RevokeSuccessResult {
 export interface PermissionErrorResult {
   status: 'error'
   code:
-    | 'unauthenticated'
-    | 'forbidden'
-    | 'not_found'
-    | 'invalid_input'
-    | 'database_error'
+  | 'unauthenticated'
+  | 'forbidden'
+  | 'not_found'
+  | 'invalid_input'
+  | 'database_error'
   message: string
 }
 
@@ -165,16 +165,16 @@ async function checkPermissionAuthority(
   deps: ManagePermissionDependencies
 ): Promise<
   | {
-      authorized: true
-      userId: string
-      documentId: string
-      role: string
-    }
+    authorized: true
+    userId: string
+    documentId: string
+    role: string
+  }
   | {
-      authorized: false
-      code: PermissionErrorResult['code']
-      message: string
-    }
+    authorized: false
+    code: PermissionErrorResult['code']
+    message: string
+  }
 > {
   const cleanDocId = documentId.trim()
 
@@ -278,17 +278,30 @@ export async function verifyTargetUserExists(
   supabase: any,
   targetUserId: string
 ): Promise<{ exists: boolean; error?: string }> {
+
   try {
+    // Prefer a SECURITY DEFINER RPC that bypasses RLS.
+    if (typeof supabase.rpc === 'function') {
+      const { data, error } = await supabase.rpc('check_profile_exists', {
+        target_user_id: targetUserId,
+      })
+      if (error) {
+        return { exists: false, error: `Failed to verify target user: ${error.message}` }
+      }
+      // Supabase may return a raw boolean or an object containing the boolean.
+      const exists = typeof data === 'boolean' ? data : (data?.exists ?? data)
+      return { exists: Boolean(exists) }
+    }
+
+    // Fallback for unit tests or environments without RPC support.
     const { data, error } = await supabase
       .from('profiles')
       .select('id')
       .eq('id', targetUserId)
       .maybeSingle()
-
     if (error) {
       return { exists: false, error: `Failed to verify target user: ${error.message}` }
     }
-
     return { exists: Boolean(data) }
   } catch (err) {
     return {
@@ -297,6 +310,7 @@ export async function verifyTargetUserExists(
     }
   }
 }
+
 
 // ---------------------------------------------------------------------------
 // Core: Grant / Update Permission
