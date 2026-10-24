@@ -12,34 +12,45 @@ interface Document {
 
 export default function DocumentList() {
   const [documents, setDocuments] = useState<Document[]>([]);
-  const [search, setSearch] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
+
   const [uploadStatus, setUploadStatus] = useState<
     "idle" | "uploading" | "success" | "error"
   >("idle");
-  const [uploadMessage, setUploadMessage] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(true);
+  const [uploadMessage, setUploadMessage] = useState("");
+
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [search, setSearch] = useState("");
+
+  // Edit state
   const [editingDocId, setEditingDocId] = useState<string | null>(null);
-  const [editName, setEditName] = useState<string>("");
-  const [editCategory, setEditCategory] = useState<string>("");
+  const [editName, setEditName] = useState("");
+  const [editCategory, setEditCategory] = useState("");
   const [editStatus, setEditStatus] = useState<
     "idle" | "saving" | "error" | "success"
   >("idle");
-  const [editMessage, setEditMessage] = useState<string>("");
+  const [editMessage, setEditMessage] = useState("");
 
+  // Permission state
   const [permDocId, setPermDocId] = useState<string | null>(null);
-  const [permUserId, setPermUserId] = useState<string>("");
-  const [permRead, setPermRead] = useState<boolean>(false);
-  const [permEdit, setPermEdit] = useState<boolean>(false);
+  const [permUserId, setPermUserId] = useState("");
+  const [permRead, setPermRead] = useState(false);
+  const [permEdit, setPermEdit] = useState(false);
   const [permStatus, setPermStatus] = useState<
     "idle" | "saving" | "error" | "success"
   >("idle");
-  const [permMessage, setPermMessage] = useState<string>("");
+  const [permMessage, setPermMessage] = useState("");
+
+  // Delete state
+  const [deletingDocId, setDeletingDocId] = useState<string | null>(null);
+  const [deleteMessage, setDeleteMessage] = useState("");
 
   const fetchDocs = async () => {
     try {
+      setError(null);
+
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BASE_URL || ""}/api/documents`,
         {
@@ -66,14 +77,6 @@ export default function DocumentList() {
     fetchDocs();
   }, []);
 
-  if (loading) {
-    return <p className="mt-4 text-slate-400">Loading documents...</p>;
-  }
-
-  if (error) {
-    return <p className="mt-4 text-red-400">Error: {error}</p>;
-  }
-
   const normalizedSearch = search.trim().toLowerCase();
 
   const filteredDocuments = documents.filter((doc) => {
@@ -87,9 +90,17 @@ export default function DocumentList() {
     );
   });
 
+  if (loading) {
+    return <p className="mt-4 text-slate-400">Loading documents...</p>;
+  }
+
+  if (error) {
+    return <p className="mt-4 text-red-400">Error: {error}</p>;
+  }
+
   return (
     <section className="mx-auto max-w-6xl px-6 py-12">
-      {/* Upload Document Section */}
+      {/* Upload */}
       <div className="mb-6">
         <h2 className="mb-2 text-xl font-semibold">Upload Document</h2>
 
@@ -131,10 +142,9 @@ export default function DocumentList() {
 
               setUploadStatus("success");
               setUploadMessage("Document uploaded successfully.");
+              setFile(null);
 
-              setTimeout(() => {
-                window.location.reload();
-              }, 1000);
+              await fetchDocs();
             } catch (err) {
               setUploadStatus("error");
               setUploadMessage(
@@ -159,6 +169,7 @@ export default function DocumentList() {
         )}
       </div>
 
+      {/* Documents header + search */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-2xl font-semibold">Your Documents</h2>
 
@@ -171,6 +182,7 @@ export default function DocumentList() {
         />
       </div>
 
+      {/* Documents */}
       {filteredDocuments.length > 0 ? (
         <ul className="mt-4 space-y-2">
           {filteredDocuments.map((doc) => (
@@ -192,6 +204,7 @@ export default function DocumentList() {
                 Created: {doc.created_at}
               </div>
 
+              {/* Download */}
               <button
                 onClick={async () => {
                   const res = await fetch(
@@ -210,9 +223,11 @@ export default function DocumentList() {
                   const blob = await res.blob();
                   const url = window.URL.createObjectURL(blob);
                   const a = document.createElement("a");
+
                   a.href = url;
                   a.download = doc.name;
                   a.click();
+
                   window.URL.revokeObjectURL(url);
                 }}
                 className="mt-2 rounded bg-blue-600 px-3 py-1 text-sm text-white"
@@ -282,6 +297,7 @@ export default function DocumentList() {
 
                           setEditStatus("success");
                           setEditMessage("Document updated successfully.");
+
                           await fetchDocs();
                           setEditingDocId(null);
                         } catch (err) {
@@ -330,10 +346,70 @@ export default function DocumentList() {
                     setEditMessage("");
                     setEditStatus("idle");
                   }}
-                  className="mt-2 ml-2 rounded bg-amber-600 px-3 py-1 text-sm text-white"
+                  className="ml-2 mt-2 rounded bg-amber-600 px-3 py-1 text-sm text-white"
                 >
                   Edit
                 </button>
+              )}
+
+              {/* Delete */}
+              <button
+                onClick={async () => {
+                  const confirmed = window.confirm(
+                    `Delete "${doc.name}"? This action will remove the document from your document list.`
+                  );
+
+                  if (!confirmed) return;
+
+                  setDeletingDocId(doc.id);
+                  setDeleteMessage("");
+
+                  try {
+                    const res = await fetch(
+                      `${process.env.NEXT_PUBLIC_BASE_URL || ""}/api/documents/${doc.id}/delete`,
+                      {
+                        method: "DELETE",
+                      }
+                    );
+
+                    if (!res.ok) {
+                      const errData = await res.json().catch(() => ({}));
+                      const status = res.status;
+
+                      let friendly =
+                        errData.error ||
+                        `Delete failed with status ${status}`;
+
+                      if (status === 401) {
+                        friendly = "Unauthenticated: please log in.";
+                      } else if (status === 403) {
+                        friendly =
+                          "Forbidden: you do not have permission to delete this document.";
+                      } else if (status === 404) {
+                        friendly = "Document not found.";
+                      }
+
+                      throw new Error(friendly);
+                    }
+
+                    setDeleteMessage("Document deleted successfully.");
+                    await fetchDocs();
+                  } catch (err) {
+                    setDeleteMessage(
+                      err instanceof Error ? err.message : String(err)
+                    );
+                  } finally {
+                    setDeletingDocId(null);
+                  }
+                }}
+                disabled={deletingDocId === doc.id}
+                className="ml-2 mt-2 rounded bg-red-600 px-3 py-1 text-sm text-white disabled:opacity-50"
+              >
+                {deletingDocId === doc.id ? "Deleting..." : "Delete"}
+              </button>
+
+              {deleteMessage && deletingDocId === null && (
+                <p className="mt-2 text-sm text-green-400">{deleteMessage}</p>
               )}
 
               {/* Permission Management */}
@@ -410,6 +486,7 @@ export default function DocumentList() {
 
                           setPermStatus("success");
                           setPermMessage("Permissions updated successfully.");
+
                           await fetchDocs();
                           setPermDocId(null);
                         } catch (err) {
@@ -422,7 +499,9 @@ export default function DocumentList() {
                       disabled={permStatus === "saving"}
                       className="rounded bg-emerald-600 px-3 py-1 text-white disabled:opacity-50"
                     >
-                      Grant/Update
+                      {permStatus === "saving"
+                        ? "Saving..."
+                        : "Grant/Update"}
                     </button>
 
                     <button
@@ -433,7 +512,9 @@ export default function DocumentList() {
                         try {
                           const res = await fetch(
                             `${process.env.NEXT_PUBLIC_BASE_URL || ""}/api/documents/${doc.id}/permissions/${permUserId}`,
-                            { method: "DELETE" }
+                            {
+                              method: "DELETE",
+                            }
                           );
 
                           if (!res.ok) {
@@ -441,8 +522,7 @@ export default function DocumentList() {
                             const status = res.status;
 
                             let friendly =
-                              errData.error ||
-                              `Revoke failed ${status}`;
+                              errData.error || `Revoke failed ${status}`;
 
                             if (status === 401) {
                               friendly = "Unauthenticated: please log in.";
@@ -458,6 +538,7 @@ export default function DocumentList() {
 
                           setPermStatus("success");
                           setPermMessage("Permission revoked successfully.");
+
                           await fetchDocs();
                           setPermDocId(null);
                         } catch (err) {
@@ -496,7 +577,7 @@ export default function DocumentList() {
                     setPermMessage("");
                     setPermStatus("idle");
                   }}
-                  className="mt-2 ml-2 rounded bg-indigo-600 px-3 py-1 text-sm text-white"
+                  className="ml-2 mt-2 rounded bg-indigo-600 px-3 py-1 text-sm text-white"
                 >
                   Manage Permissions
                 </button>
@@ -504,12 +585,10 @@ export default function DocumentList() {
             </li>
           ))}
         </ul>
+      ) : search.trim() ? (
+        <p className="mt-4 text-slate-400">No documents match your search.</p>
       ) : (
-        <p className="mt-4 text-slate-400">
-          {search.trim()
-            ? "No documents match your search."
-            : "No documents found."}
-        </p>
+        <p className="mt-4 text-slate-400">No documents found.</p>
       )}
     </section>
   );
