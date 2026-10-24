@@ -16,31 +16,25 @@ export default async function DashboardPage() {
   const { user, profile, status, error: authError } = authResult
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
+    <main className="min-h-screen bg-slate-950 text-white overflow-x-hidden">
       {/* Header */}
       <header className="border-b border-white/10">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 font-bold text-sm">
-              T
-            </div>
-            <span className="text-lg font-semibold tracking-tight">
-              TrustVault
-            </span>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-400">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              Authenticated
-            </span>
-            <LogoutButton />
-          </div>
-        </div>
+        <div className="mx-auto flex max-w-screen-lg items-center justify-between px-4 py-4 overflow-x-hidden">
+  <div className="flex flex-col">
+    <div className="flex items-center gap-3">
+      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 font-bold text-sm">T</div>
+      <span className="text-lg font-semibold tracking-tight">TrustVault</span>
+    </div>
+    <p className="text-sm text-slate-400">Secure Document Vault</p>
+  </div>
+  <div className="flex items-center gap-3">
+    <LogoutButton />
+  </div>
+</div>
       </header>
 
       {/* Main Content */}
-      <section className="mx-auto max-w-6xl px-6 py-12">
+      <section className="mx-auto max-w-screen-lg px-4 py-12">
         <div className="max-w-2xl">
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
             Dashboard

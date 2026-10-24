@@ -101,8 +101,9 @@ export default function DocumentList() {
   return (
     <section className="mx-auto max-w-6xl px-6 py-12">
       {/* Upload */}
-      <div className="mb-6">
+      <div className="mb-8 rounded border border-dashed border-white/10 bg-slate-900/30 p-6 max-w-2xl w-full mx-auto">
         <h2 className="mb-2 text-xl font-semibold">Upload Document</h2>
+          <p className="mb-2 text-sm text-slate-400">Select a file to upload to your secure vault.</p>
 
         <input
           type="file"
@@ -170,8 +171,9 @@ export default function DocumentList() {
       </div>
 
       {/* Documents header + search */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
         <h2 className="text-2xl font-semibold">Your Documents</h2>
+          <p className="text-sm text-slate-400">Documents you currently have access to.</p>
 
         <input
           type="search"
@@ -184,13 +186,13 @@ export default function DocumentList() {
 
       {/* Documents */}
       {filteredDocuments.length > 0 ? (
-        <ul className="mt-4 space-y-2">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {filteredDocuments.map((doc) => (
             <li
               key={doc.id}
-              className="rounded border border-white/10 p-3"
+              className="rounded border border-white/10 p-4 bg-slate-800/30 hover:bg-slate-800/50 transition flex flex-col h-full"
             >
-              <div className="font-medium">{doc.name}</div>
+              <div className="flex items-center space-x-2"><span className="text-xl">📄</span><div className="font-medium truncate" title={doc.name}>{doc.name}</div></div>
 
               <div className="text-sm text-slate-400">
                 Category: {doc.category ?? "None"}
@@ -584,7 +586,7 @@ export default function DocumentList() {
               )}
             </li>
           ))}
-        </ul>
+        </div>
       ) : search.trim() ? (
         <p className="mt-4 text-slate-400">No documents match your search.</p>
       ) : (
