@@ -1,5 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getCurrentUserWithProfile } from '@/lib/auth/roles'
+import DocumentList from './DocumentList'
+
 
 export const instant = false
 
@@ -10,7 +12,10 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
-  const { user, profile, status, error: authError } = authResult
+  const { user, profile, status, error: authError } = authResult;
+
+
+
 
   return (
     <main className="min-h-screen bg-slate-950 text-white">
@@ -117,6 +122,8 @@ export default async function DashboardPage() {
           </div>
         </div>
       </section>
+
+<DocumentList />
     </main>
   )
 }
