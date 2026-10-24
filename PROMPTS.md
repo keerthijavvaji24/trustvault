@@ -193,7 +193,7 @@ I also documented manual security verification results alongside the automated t
 
 ### Commit
 
-`[THREATS_COMMIT]` — `docs: update TrustVault threat model`
+`e298a84` — `docs: add threat model and security mitigations`
 
 ## Entry 7 — 2026-10-23
 
