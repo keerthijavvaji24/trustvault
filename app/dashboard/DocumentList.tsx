@@ -36,6 +36,14 @@ interface VaultDocument {
   created_at: string;
 }
 
+type Permission = {
+  user_id: string;
+  full_name: string;
+  can_read: boolean;
+  can_edit: boolean;
+  created_at: string;
+  updated_at: string;
+};
 type Status = "idle" | "saving" | "error" | "success";
 
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
@@ -201,6 +209,8 @@ export default function DocumentList({
   const [permEdit, setPermEdit] = useState(false);
   const [permStatus, setPermStatus] = useState<Status>("idle");
   const [permMessage, setPermMessage] = useState("");
+  const [permissions, setPermissions] = useState<Permission[]>([]);
+  const [permLoading, setPermLoading] = useState(false);
 
   // Delete state
   const [deletingDocId, setDeletingDocId] = useState<string | null>(null);
@@ -449,6 +459,32 @@ export default function DocumentList({
   /* Permissions                                                      */
   /* ---------------------------------------------------------------- */
 
+  const fetchPermissions = async (docId: string) => {
+    try {
+      setPermLoading(true);
+
+      const res = await fetch(apiUrl(`/api/documents/${docId}/permissions`), {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(data.error ?? "Failed to fetch permissions");
+      }
+
+      setPermissions(data.permissions ?? []);
+    } catch (err) {
+      setPermissions([]);
+      setPermMessage(err instanceof Error ? err.message : String(err));
+      setPermStatus("error");
+    } finally {
+      setPermLoading(false);
+    }
+  };
+
   const openPerm = (docId: string) => {
     setPermDocId(docId);
     setPermUserId("");
@@ -456,10 +492,13 @@ export default function DocumentList({
     setPermEdit(false);
     setPermMessage("");
     setPermStatus("idle");
+    setPermissions([]);
+    fetchPermissions(docId);
   };
 
   const closePerm = () => {
     setPermDocId(null);
+    setPermissions([]);
     setPermMessage("");
     setPermStatus("idle");
   };
@@ -503,22 +542,25 @@ export default function DocumentList({
 
       setPermStatus("success");
       setPermMessage("Permissions updated successfully.");
+      setPermUserId("");
+      setPermRead(false);
+      setPermEdit(false);
 
       await fetchDocs();
-      setPermDocId(null);
+      await fetchPermissions(docId);
     } catch (err) {
       setPermStatus("error");
       setPermMessage(err instanceof Error ? err.message : String(err));
     }
   };
 
-  const revokePermission = async (docId: string) => {
+  const revokePermission = async (docId: string, userId: string) => {
     setPermStatus("saving");
     setPermMessage("");
 
     try {
       const res = await fetch(
-        apiUrl(`/api/documents/${docId}/permissions/${permUserId}`),
+        apiUrl(`/api/documents/${docId}/permissions/${userId}`),
         {
           method: "DELETE",
         }
@@ -546,7 +588,56 @@ export default function DocumentList({
       setPermMessage("Permission revoked successfully.");
 
       await fetchDocs();
-      setPermDocId(null);
+      await fetchPermissions(docId);
+    } catch (err) {
+      setPermStatus("error");
+      setPermMessage(err instanceof Error ? err.message : String(err));
+    }
+  };
+
+  // Toggle an existing user between "Read only" and "Can edit".
+  const changePermission = async (docId: string, perm: Permission) => {
+    setPermStatus("saving");
+    setPermMessage("");
+
+    try {
+      const res = await fetch(
+        apiUrl(`/api/documents/${docId}/permissions/${perm.user_id}`),
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            can_read: true,
+            can_edit: !perm.can_edit,
+          }),
+        }
+      );
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        const status = res.status;
+
+        let friendly = errData.error || `Permission update failed ${status}`;
+
+        if (status === 401) {
+          friendly = "Unauthenticated: please log in.";
+        } else if (status === 403) {
+          friendly =
+            "Forbidden: you do not have permission to manage permissions.";
+        } else if (status === 404) {
+          friendly = "Document or user not found.";
+        }
+
+        throw new Error(friendly);
+      }
+
+      setPermStatus("success");
+      setPermMessage("Permissions updated successfully.");
+
+      await fetchDocs();
+      await fetchPermissions(docId);
     } catch (err) {
       setPermStatus("error");
       setPermMessage(err instanceof Error ? err.message : String(err));
@@ -1220,6 +1311,81 @@ export default function DocumentList({
           onClose={closePerm}
         >
           <div className="space-y-5">
+            {/* Current access */}
+            <section aria-labelledby="perm-current-title">
+              <h4
+                id="perm-current-title"
+                className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500"
+              >
+                Current access
+              </h4>
+
+              {permLoading ? (
+                <div className="flex items-center gap-2 text-sm text-slate-500">
+                  <Spinner className="h-4 w-4" />
+                  Loading access...
+                </div>
+              ) : permissions.length > 0 ? (
+                <ul className="space-y-2">
+                  {permissions.map((p) => (
+                    <li
+                      key={p.user_id}
+                      className="flex flex-wrap items-center gap-3 rounded-md border border-slate-200 bg-slate-50 p-3"
+                    >
+                      <Avatar label={p.full_name || p.user_id} />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-slate-900">
+                          {p.full_name || "Unnamed user"}
+                        </p>
+                        <p
+                          className="truncate font-mono text-xs text-slate-500"
+                          title={p.user_id}
+                        >
+                          {p.user_id}
+                        </p>
+                      </div>
+                      <span
+                        className={`tv-badge ${
+                          p.can_edit
+                            ? "bg-indigo-50 text-indigo-700 ring-indigo-200"
+                            : "bg-slate-100 text-slate-700 ring-slate-200"
+                        }`}
+                      >
+                        {p.can_edit ? "Can edit" : "Read only"}
+                      </span>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => changePermission(permDocId, p)}
+                          disabled={permStatus === "saving"}
+                          title={`Switch to ${p.can_edit ? "Read only" : "Can edit"}`}
+                          className="tv-btn tv-btn-secondary"
+                        >
+                          Change
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => revokePermission(permDocId, p.user_id)}
+                          disabled={permStatus === "saving"}
+                          className="tv-btn tv-btn-danger"
+                        >
+                          Revoke
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-slate-500">
+                  No one else has access to this document yet.
+                </p>
+              )}
+            </section>
+
+            <h4 className="border-t border-slate-200 pt-5 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Grant new access
+            </h4>
+
             <div>
               <label htmlFor="perm-user" className="tv-label">
                 User ID
@@ -1235,8 +1401,7 @@ export default function DocumentList({
                 className="tv-input font-mono"
               />
               <p className="mt-1.5 text-xs text-slate-500">
-                Enter the ID of the person you want to grant or revoke access
-                for.
+                Enter the ID of the person you want to grant access to.
               </p>
             </div>
 
@@ -1308,16 +1473,7 @@ export default function DocumentList({
             )}
           </div>
 
-          <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <button
-              type="button"
-              onClick={() => revokePermission(permDocId)}
-              disabled={permStatus === "saving"}
-              className="tv-btn tv-btn-danger"
-            >
-              Revoke
-            </button>
-
+          <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
             <div className="flex flex-col-reverse gap-2 sm:flex-row">
               <button
                 type="button"
@@ -1332,7 +1488,7 @@ export default function DocumentList({
                 disabled={permStatus === "saving"}
                 className="tv-btn tv-btn-primary"
               >
-                {permStatus === "saving" ? "Saving..." : "Grant/Update"}
+                {permStatus === "saving" ? "Saving..." : "Grant Access"}
               </button>
             </div>
           </div>
