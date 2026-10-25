@@ -1,8 +1,15 @@
 @import "tailwindcss";
 
+/*
+  TrustVault design tokens
+  - Navy surfaces for chrome (sidebar, auth panel, landing)
+  - White / slate surfaces for work areas
+  - Indigo is the primary action colour, violet is a quiet accent
+*/
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8fafc;
+  --foreground: #0f172a;
 }
 
 @theme inline {
@@ -12,15 +19,97 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@theme {
+  --color-navy-950: #0a0f2c;
+  --color-navy-900: #10173d;
+  --color-navy-800: #182052;
+}
+
+html {
+  color-scheme: light;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans, ui-sans-serif), system-ui, -apple-system,
+    "Segoe UI", Roboto, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer components {
+  /* Surfaces */
+  .tv-card {
+    @apply rounded-lg border border-slate-200 bg-white shadow-sm;
+  }
+
+  /* Buttons: one height, one radius, one focus ring */
+  .tv-btn {
+    @apply inline-flex h-9 items-center justify-center gap-2 rounded-md px-3.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .tv-btn-primary {
+    @apply bg-indigo-600 text-white hover:bg-indigo-700;
+  }
+  .tv-btn-secondary {
+    @apply border border-slate-300 bg-white text-slate-700 hover:bg-slate-50;
+  }
+  .tv-btn-danger {
+    @apply border border-red-200 bg-white text-red-700 hover:bg-red-50;
+  }
+
+  /* Compact row actions: icon + label on small screens, icon only from md up */
+  .tv-action {
+    @apply inline-flex h-8 items-center justify-center gap-1.5 rounded-md px-2 text-sm text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-50 md:w-8 md:px-0;
+  }
+  .tv-action-danger {
+    @apply hover:bg-red-50 hover:text-red-700;
+  }
+  .tv-icon-btn {
+    @apply inline-flex h-9 w-9 items-center justify-center rounded-md text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500;
+  }
+
+  /* Form controls */
+  .tv-label {
+    @apply mb-1.5 block text-sm font-medium text-slate-700;
+  }
+  .tv-input {
+    @apply h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:bg-slate-50 disabled:opacity-60;
+  }
+  .tv-input[aria-invalid="true"] {
+    @apply border-red-400 focus:border-red-500 focus:ring-red-500/20;
+  }
+
+  /* Badges */
+  .tv-badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset;
+  }
+}
+
+/* Indeterminate progress (fetch exposes no upload progress events) */
+@keyframes tv-indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(350%);
+  }
+}
+
+.tv-indeterminate {
+  animation: tv-indeterminate 1.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tv-indeterminate {
+    animation: none;
+    transform: none;
+    width: 100%;
+  }
 }

@@ -13,6 +13,7 @@ export const AUDIT_ACTIONS = [
   'permission.grant',
   'permission.update',
   'permission.revoke',
+  'permissions.list',
 ] as const
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[number]

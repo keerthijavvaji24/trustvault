@@ -1,106 +1,122 @@
 import Link from 'next/link';
+import {
+  LockIcon,
+  LogoMark,
+  ShieldCheckIcon,
+  UsersIcon,
+  VaultDial,
+} from './_components/icons';
+
+const FEATURES = [
+  {
+    icon: ShieldCheckIcon,
+    title: 'Verify',
+    body: 'Check information and establish confidence before you trust it.',
+  },
+  {
+    icon: LockIcon,
+    title: 'Protect',
+    body: 'Keep important trust information organized and protected.',
+  },
+  {
+    icon: UsersIcon,
+    title: 'Share',
+    body: 'Share the right proof with the right people when it matters.',
+  },
+];
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
+    <main className="min-h-screen bg-navy-950 text-white">
       {/* Header */}
       <header className="border-b border-white/10">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 font-bold text-lg">
-              T
-            </div>
-            <span className="text-xl font-semibold tracking-tight">
+            <LogoMark className="h-9 w-9" />
+            <span className="text-lg font-semibold tracking-tight">
               TrustVault
             </span>
           </div>
 
           <nav className="hidden items-center gap-8 text-sm text-slate-300 md:flex">
-            <a href="#how-it-works" className="hover:text-white">
+            <a href="#how-it-works" className="transition-colors hover:text-white">
               How it works
             </a>
-            <a href="#security" className="hover:text-white">
+            <a href="#security" className="transition-colors hover:text-white">
               Security
             </a>
-            <a href="#about" className="hover:text-white">
+            <a href="#about" className="transition-colors hover:text-white">
               About
             </a>
           </nav>
 
-                    <Link href="/login"><button className="rounded-lg border border-white/15 px-4 py-2 text-sm font-medium hover:bg-white/10">Sign in</button></Link>
+          <Link
+            href="/login"
+            className="tv-btn border border-white/20 text-white hover:bg-white/10 focus-visible:ring-offset-navy-950"
+          >
+            Sign in
+          </Link>
         </div>
       </header>
 
       {/* Hero */}
-      <section className="mx-auto max-w-6xl px-6 pb-24 pt-24">
-        <div className="max-w-3xl">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-400/20 bg-blue-400/10 px-4 py-2 text-sm text-blue-300">
-            <span className="h-2 w-2 rounded-full bg-blue-400" />
-            Trust, verified
-          </div>
+      <section className="relative overflow-hidden">
+        <VaultDial className="pointer-events-none absolute -right-48 top-1/2 hidden h-[40rem] w-[40rem] -translate-y-1/2 text-indigo-300 lg:block" />
 
-          <h1 className="text-5xl font-bold leading-tight tracking-tight sm:text-6xl">
-            Build trust with
-            <span className="block text-blue-400">proof, not promises.</span>
-          </h1>
+        <div className="relative mx-auto max-w-6xl px-6 pb-24 pt-20 sm:pt-28">
+          <div className="max-w-2xl">
+            <h1 className="text-4xl font-semibold leading-tight tracking-tight sm:text-6xl">
+              Build trust with proof, not promises.
+            </h1>
 
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-400">
-            TrustVault helps people verify, organize, and share trustworthy
-            information in one secure place.
-          </p>
+            <p className="mt-6 max-w-xl text-lg leading-8 text-slate-300">
+              TrustVault helps people verify, organize, and share trustworthy
+              information in one secure place.
+            </p>
 
-          <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-            <button className="rounded-xl bg-blue-600 px-6 py-3 font-semibold hover:bg-blue-500">
-              Get started
-            </button>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link
+                href="/login"
+                className="tv-btn tv-btn-primary h-11 px-6 focus-visible:ring-offset-navy-950"
+              >
+                Get started
+              </Link>
 
-            <button className="rounded-xl border border-white/15 px-6 py-3 font-semibold text-slate-200 hover:bg-white/10">
-              Explore TrustVault
-            </button>
+              <a
+                href="#how-it-works"
+                className="tv-btn h-11 border border-white/20 px-6 text-slate-100 hover:bg-white/10 focus-visible:ring-offset-navy-950"
+              >
+                Explore TrustVault
+              </a>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Trust cards */}
+      {/* How it works */}
       <section
         id="how-it-works"
-        className="border-y border-white/10 bg-slate-900/50"
+        className="scroll-mt-4 border-y border-white/10 bg-navy-900"
       >
-        <div className="mx-auto grid max-w-6xl gap-6 px-6 py-16 md:grid-cols-3">
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
-            <div className="mb-5 text-2xl">✓</div>
-            <h2 className="text-xl font-semibold">Verify</h2>
-            <p className="mt-3 leading-7 text-slate-400">
-              Check information and establish confidence before you trust it.
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
-            <div className="mb-5 text-2xl">🔐</div>
-            <h2 className="text-xl font-semibold">Protect</h2>
-            <p className="mt-3 leading-7 text-slate-400">
-              Keep important trust information organized and protected.
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
-            <div className="mb-5 text-2xl">↗</div>
-            <h2 className="text-xl font-semibold">Share</h2>
-            <p className="mt-3 leading-7 text-slate-400">
-              Share the right proof with the right people when it matters.
-            </p>
-          </div>
+        <div className="mx-auto grid max-w-6xl gap-px px-6 py-16 md:grid-cols-3 md:gap-10">
+          {FEATURES.map(({ icon: Icon, title, body }) => (
+            <div key={title} className="flex gap-4">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-white/5 text-violet-300 ring-1 ring-inset ring-white/10">
+                <Icon className="h-5 w-5" />
+              </span>
+              <div>
+                <h2 className="text-lg font-semibold">{title}</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-400">{body}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
       {/* Security */}
-      <section id="security" className="mx-auto max-w-6xl px-6 py-20">
-        <div className="rounded-3xl border border-blue-400/10 bg-blue-500/5 p-8 sm:p-12">
-          <p className="text-sm font-semibold uppercase tracking-widest text-blue-400">
-            TrustVault
-          </p>
-
-          <h2 className="mt-4 max-w-2xl text-3xl font-bold tracking-tight sm:text-4xl">
+      <section id="security" className="mx-auto max-w-6xl scroll-mt-4 px-6 py-20">
+        <div className="rounded-lg border border-white/10 bg-white/[0.03] p-8 sm:p-12">
+          <h2 className="max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl">
             One place for the information you need to trust.
           </h2>
 

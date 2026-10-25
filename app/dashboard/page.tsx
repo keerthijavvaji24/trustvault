@@ -1,8 +1,10 @@
 import { redirect } from 'next/navigation'
 import { getCurrentUserWithProfile } from '@/lib/auth/roles'
+import AppShell from './AppShell'
 import DocumentList from './DocumentList'
-import LogoutButton from './LogoutButton'
 import AdminActivity from './AdminActivity'
+import { AlertIcon, ShieldCheckIcon } from '../_components/icons'
+import { RoleBadge } from '../_components/ui'
 
 export const instant = false
 
@@ -15,138 +17,142 @@ export default async function DashboardPage() {
 
   const { user, profile, status, error: authError } = authResult
 
-  return (
-    <main className="min-h-screen bg-slate-950 text-white overflow-x-hidden">
-      {/* Header */}
-      <header className="border-b border-white/10">
-        <div className="mx-auto flex max-w-screen-lg items-center justify-between px-4 py-4 overflow-x-hidden">
-  <div className="flex flex-col">
-    <div className="flex items-center gap-3">
-      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 font-bold text-sm">T</div>
-      <span className="text-lg font-semibold tracking-tight">TrustVault</span>
-    </div>
-    <p className="text-sm text-slate-400">Secure Document Vault</p>
-  </div>
-  <div className="flex items-center gap-3">
-    <LogoutButton />
-  </div>
-</div>
-      </header>
+  const hasProfile = status === 'success' && !!profile
+  const role: string | null = hasProfile ? profile.role : null
+  const fullName: string | null = hasProfile ? (profile.fullName ?? null) : null
+  const isAdmin = status === 'success' && profile?.role === 'admin'
 
-      {/* Main Content */}
-      <section className="mx-auto max-w-screen-lg px-4 py-12">
-        <div className="max-w-2xl">
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+  return (
+    <AppShell
+      email={user.email ?? ''}
+      fullName={fullName}
+      role={role}
+      isAdmin={isAdmin}
+    >
+      <div className="mx-auto w-full max-w-6xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
+        {/* Page heading */}
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
             Dashboard
           </h1>
-
-          <p className="mt-2 text-slate-400">
-            Protected area with server-side role resolution from public.profiles.
+          <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-600">
+            Upload, share and review the documents in your vault. Every request
+            is checked against your role on the server.
           </p>
-
-          {/* User & Role Information Card */}
-          <div className="mt-8 rounded-2xl border border-white/10 bg-slate-900/50 p-6 space-y-6">
-            <div>
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                Authenticated Account
-              </h2>
-
-              <p className="mt-1.5 text-xl font-medium text-white">
-                {user.email || 'No email associated'}
-              </p>
-
-              <p className="mt-1 text-xs text-slate-500">
-                User ID:{' '}
-                <span className="font-mono text-slate-400">
-                  {user.id}
-                </span>
-              </p>
-            </div>
-
-            <div className="border-t border-white/10 pt-5">
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                Application Role
-              </h2>
-
-              {status === 'success' && profile && (
-                <div className="mt-2 flex items-center gap-3">
-                  <span
-                    className={`inline-flex items-center rounded-lg px-3 py-1 text-xs font-semibold uppercase tracking-wide ${
-                      profile.role === 'admin'
-                        ? 'border border-purple-400/30 bg-purple-500/10 text-purple-300'
-                        : profile.role === 'owner'
-                          ? 'border border-blue-400/30 bg-blue-500/10 text-blue-300'
-                          : 'border border-slate-400/30 bg-slate-500/10 text-slate-300'
-                    }`}
-                  >
-                    {profile.role}
-                  </span>
-
-                  {profile.fullName && (
-                    <span className="text-sm text-slate-300">
-                      ({profile.fullName})
-                    </span>
-                  )}
-                </div>
-              )}
-
-              {status === 'profile_not_found' && (
-                <div className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5 text-sm text-amber-200">
-                  <p className="font-semibold">Profile Not Found</p>
-
-                  <p className="mt-1 text-xs leading-relaxed text-amber-300/90">
-                    No profile record was found in{' '}
-                    <code className="font-mono">public.profiles</code> for this
-                    user ID. Access is restricted; no role is assumed.
-                  </p>
-
-                  {authError && (
-                    <p className="mt-2 text-xs font-mono text-amber-400/80">
-                      Details: {authError}
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {status === 'invalid_role' && (
-                <div className="mt-3 rounded-xl border border-red-500/30 bg-red-500/10 p-3.5 text-sm text-red-200">
-                  <p className="font-semibold">Invalid Role Detected</p>
-
-                  <p className="mt-1 text-xs leading-relaxed text-red-300/90">
-                    The role stored in the database is not recognized. Expected
-                    one of:{' '}
-                    <code className="font-mono">admin</code>,{' '}
-                    <code className="font-mono">owner</code>, or{' '}
-                    <code className="font-mono">viewer</code>. No permissions
-                    are granted.
-                  </p>
-
-                  {authError && (
-                    <p className="mt-2 text-xs font-mono text-red-400/80">
-                      Details: {authError}
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="mt-6 rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 text-sm leading-relaxed text-blue-300">
-            The role displayed above is verified on the server directly from
-            the database using your authenticated user ID. Client state,
-            request parameters, and headers cannot override or manipulate this
-            role.
-          </div>
         </div>
 
-        {/* Documents */}
-        <DocumentList />
+        {/* Role resolution problems */}
+        {status === 'profile_not_found' && (
+          <div
+            role="alert"
+            className="flex gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900"
+          >
+            <AlertIcon className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+            <div className="min-w-0">
+              <p className="font-semibold">Profile Not Found</p>
+              <p className="mt-1 leading-6 text-amber-800">
+                No profile record was found in{' '}
+                <code className="font-mono text-xs">public.profiles</code> for
+                this user ID. Access is restricted; no role is assumed.
+              </p>
+              {authError && (
+                <p className="mt-2 break-words font-mono text-xs text-amber-700">
+                  Details: {authError}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {status === 'invalid_role' && (
+          <div
+            role="alert"
+            className="flex gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-900"
+          >
+            <AlertIcon className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
+            <div className="min-w-0">
+              <p className="font-semibold">Invalid Role Detected</p>
+              <p className="mt-1 leading-6 text-red-800">
+                The role stored in the database is not recognized. Expected one
+                of: <code className="font-mono text-xs">admin</code>,{' '}
+                <code className="font-mono text-xs">owner</code>, or{' '}
+                <code className="font-mono text-xs">viewer</code>. No
+                permissions are granted.
+              </p>
+              {authError && (
+                <p className="mt-2 break-words font-mono text-xs text-red-700">
+                  Details: {authError}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Metrics, upload, documents, shared, recent activity */}
+        <DocumentList currentUserId={user.id} />
 
         {/* Admin-only activity */}
-        {status === 'success' && profile?.role === 'admin' && (
-          <AdminActivity />
-        )}
-      </section>
-    </main>
+        {isAdmin && <AdminActivity />}
+
+        {/* Session details */}
+        <section className="tv-card" aria-labelledby="session-heading">
+          <div className="flex items-center gap-3 border-b border-slate-200 px-5 py-4">
+            <span className="flex h-9 w-9 items-center justify-center rounded-md bg-indigo-50 text-indigo-600">
+              <ShieldCheckIcon className="h-5 w-5" />
+            </span>
+            <div>
+              <h2
+                id="session-heading"
+                className="text-base font-semibold text-slate-900"
+              >
+                Session and access
+              </h2>
+              <p className="text-sm text-slate-500">
+                Details of the account signed in on this device.
+              </p>
+            </div>
+          </div>
+
+          <dl className="grid gap-x-8 gap-y-5 px-5 py-5 sm:grid-cols-2">
+            <div className="min-w-0">
+              <dt className="text-sm font-medium text-slate-500">
+                Authenticated Account
+              </dt>
+              <dd className="mt-1 break-words text-sm font-medium text-slate-900">
+                {user.email || 'No email associated'}
+              </dd>
+              <dd className="mt-1 break-all text-xs text-slate-500">
+                User ID:{' '}
+                <span className="font-mono text-slate-600">{user.id}</span>
+              </dd>
+            </div>
+
+            <div>
+              <dt className="text-sm font-medium text-slate-500">
+                Application Role
+              </dt>
+              <dd className="mt-1 flex flex-wrap items-center gap-2 text-sm">
+                {role ? (
+                  <>
+                    <RoleBadge role={role} />
+                    {fullName && (
+                      <span className="text-slate-600">({fullName})</span>
+                    )}
+                  </>
+                ) : (
+                  <span className="text-slate-500">No role assigned</span>
+                )}
+              </dd>
+            </div>
+          </dl>
+
+          <p className="border-t border-slate-200 bg-slate-50 px-5 py-3 text-sm leading-6 text-slate-600">
+            The role shown here is verified on the server directly from the
+            database using your authenticated user ID. Client state, request
+            parameters, and headers cannot override or manipulate it.
+          </p>
+        </section>
+      </div>
+    </AppShell>
   )
 }
